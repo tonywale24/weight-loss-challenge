@@ -1,6 +1,6 @@
 /* App-shell cache: static assets cache-first, navigations network-first
    (so deploys show up), Supabase API always network (never cache data). */
-const CACHE = 'wlc-v5';
+const CACHE = 'wlc-v6';
 const SHELL = [
   './',
   './index.html',
@@ -18,7 +18,16 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // cache: 'reload' bypasses the browser HTTP cache (GitHub Pages holds
+  // assets for 10 min) so a new SW version always precaches fresh files.
+  e.waitUntil(
+    caches.open(CACHE)
+      .then((c) => Promise.all(SHELL.map((u) => fetch(u, { cache: 'reload' }).then((res) => {
+        if (!res.ok) throw new Error('precache failed: ' + u);
+        return c.put(u, res);
+      }))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (e) => {

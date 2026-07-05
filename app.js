@@ -787,7 +787,18 @@
 
   // ---------- PWA / offline ----------
   function registerSW() {
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    // When a NEW version replaces the old SW, reload once so updates apply
+    // on the next open instead of needing two manual refreshes. First-ever
+    // visit (no prior controller) never reloads — assets are already fresh.
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloaded) return;
+      reloaded = true;
+      location.reload();
+    });
   }
   function updateOnline() { $('offline-banner').hidden = navigator.onLine; }
 
