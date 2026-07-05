@@ -204,6 +204,13 @@
 
     if (!state.me) html += '<div class="banner">👀 Signed in as a spectator — this account isn\'t one of the two participants, so everything is read-only.</div>';
 
+    // how it works (expandable, collapsed by default)
+    html += '<details class="card rules"' + (state.rulesOpen ? ' open' : '') + '><summary>ℹ️ How the challenge works<span class="chev">▾</span></summary><div class="rules-body">' +
+      '<p>The Summer 2026 Challenge is a head-to-head weight-loss contest between Tony and Amber running from 6 July to 27 September, split into three 4-week blocks.</p>' +
+      '<p>At the start of each block, both set their own target weight, then weigh in every Monday morning, and the week-4 weigh-in is the one that counts: finish a block above your target and you owe the other person <b>£200</b>. The slate is wiped clean after each checkpoint, with the next block starting from wherever you finished, so lost kilos are never re-counted.</p>' +
+      '<p>Alongside the money, two bragging-rights battles run all summer: a daily "on plan?" food check-in and at least four workouts of 45+ minutes every week. These feed streaks, badges, and the live "who\'s winning" scoreboard below, where every weigh-in, meal verdict, and workout (screenshot proof optional) gets logged from each person\'s own phone.</p>' +
+      '</div></details>';
+
     // headline
     const bagA = { target: targetOf(a.id), weighIns: state.weighIns, workouts: state.workouts, checkins: state.checkins, today: t };
     const bagB = { target: targetOf(b.id), weighIns: state.weighIns, workouts: state.workouts, checkins: state.checkins, today: t };
@@ -245,13 +252,6 @@
 
     // forfeit ledger
     html += '<div class="section-title">💷 Forfeit ledger — £' + L.FORFEIT_AMOUNT + ' a miss (weight only)</div><div class="card">' + ledgerBlock() + '</div>';
-
-    // how it works (expandable)
-    html += '<details class="card rules"' + (state.rulesOpen ? ' open' : '') + '><summary>ℹ️ How the challenge works<span class="chev">▾</span></summary><div class="rules-body">' +
-      '<p>The Summer 2026 Challenge is a head-to-head weight-loss contest between Tony and Amber running from 6 July to 27 September, split into three 4-week blocks.</p>' +
-      '<p>At the start of each block, both set their own target weight, then weigh in every Monday morning, and the week-4 weigh-in is the one that counts: finish a block above your target and you owe the other person <b>£200</b>. The slate is wiped clean after each checkpoint, with the next block starting from wherever you finished, so lost kilos are never re-counted.</p>' +
-      '<p>Alongside the money, two bragging-rights battles run all summer: a daily "on plan?" food check-in and at least four workouts of 45+ minutes every week. These feed streaks, badges, and the live "who\'s winning" scoreboard above, where every weigh-in, meal verdict, and workout (screenshot proof optional) gets logged from each person\'s own phone.</p>' +
-      '</div></details>';
 
     root.innerHTML = html;
     const rules = root.querySelector('details.rules');

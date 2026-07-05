@@ -282,7 +282,6 @@ button.pill { min-height: 44px; }
 }
 .banner .btn { margin-top: 10px; }
 /* expandable rules card */
-details.rules { margin-top: 14px; }
 details.rules summary {
   cursor: pointer; font-weight: 800; font-family: var(--font-display);
   display: flex; justify-content: space-between; align-items: center;
