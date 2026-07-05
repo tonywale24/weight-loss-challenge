@@ -32,7 +32,7 @@
     ],
     workouts: [
       // Tony: 4 qualifying this week + 4 last week (streak 2)
-      ...[0, 1, 2, 3].map((i) => ({ id: 'wo' + i, participant_id: 'p-tony', workout_date: L.addDays(monday, i), duration_min: 50, source: 'manual' })),
+      ...[0, 1, 2, 3].map((i) => ({ id: 'wo' + i, participant_id: 'p-tony', workout_date: L.addDays(monday, i), duration_min: 50, source: 'manual', note: i === 0 ? 'Cardio workout' : null, photo_path: i === 0 ? 'uid-tony/mock.jpg' : null })),
       ...[0, 1, 2, 3].map((i) => ({ id: 'wp' + i, participant_id: 'p-tony', workout_date: L.addDays(monday, i - 7), duration_min: 45, source: 'manual' })),
       // Amber: one sub-45 workout (doesn't count)
       { id: 'wa1', participant_id: 'p-amber', workout_date: L.addDays(monday, 1), duration_min: 40, source: 'manual' },
@@ -68,6 +68,15 @@
 
   window.supabase = {
     createClient: () => ({
+      storage: {
+        from: () => ({
+          upload: async () => ({ data: {}, error: null }),
+          createSignedUrls: async (paths) => ({
+            data: paths.map((p) => ({ path: p, signedUrl: 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44"><rect width="44" height="44" fill="#2a2f40"/><text x="22" y="28" font-size="18" text-anchor="middle">📸</text></svg>') })),
+            error: null,
+          }),
+        }),
+      },
       auth: {
         getSession: async () => ({ data: { session: { user: { id: 'uid-tony' } } } }),
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),

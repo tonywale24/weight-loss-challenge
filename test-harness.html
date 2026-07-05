@@ -82,7 +82,7 @@
       </section>
 
       <section id="view-workout" class="view" hidden>
-        <h2>💪 Workout</h2>
+        <h2>💪 Workouts</h2>
         <p class="view-sub">4 per week, 45+ minutes each. Shorter ones are logged but don't count.</p>
         <form id="workout-form" class="card form-card">
           <label for="workout-date">Date</label>
@@ -90,6 +90,12 @@
           <label for="workout-duration">Duration (minutes)</label>
           <input id="workout-duration" type="number" min="1" max="600" inputmode="numeric" value="45" required>
           <p id="workout-hint" class="hint"></p>
+          <label for="workout-note">What did you do? <span class="muted">(optional)</span></label>
+          <input id="workout-note" type="text" maxlength="80" placeholder="e.g. Cardio workout">
+          <label>Proof <span class="muted">(optional — screenshot from Apple Health)</span></label>
+          <input id="workout-photo" type="file" accept="image/*" hidden>
+          <button type="button" class="btn" id="workout-photo-btn">📸 Add screenshot</button>
+          <p class="hint" id="workout-photo-name" hidden></p>
           <button type="submit" class="btn btn-primary btn-big">Log workout</button>
         </form>
         <div id="workout-list"></div>
@@ -105,7 +111,7 @@
       <button class="tab active" data-view="dashboard"><span class="tab-ico">🏆</span>Home</button>
       <button class="tab" data-view="weigh"><span class="tab-ico">⚖️</span>Weigh</button>
       <button class="tab" data-view="food"><span class="tab-ico">🍎</span>Food</button>
-      <button class="tab" data-view="workout"><span class="tab-ico">💪</span>Gym</button>
+      <button class="tab" data-view="workout"><span class="tab-ico">💪</span>Workouts</button>
       <button class="tab" data-view="month"><span class="tab-ico">📅</span>Month</button>
     </nav>
   </div>

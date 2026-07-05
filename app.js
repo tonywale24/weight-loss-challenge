@@ -48,7 +48,7 @@
 
     $('login-form').addEventListener('submit', onLogin);
     $('signout-btn').addEventListener('click', onSignOut);
-    $('refresh-btn').addEventListener('click', () => refresh(true));
+    $('refresh-btn').addEventListener('click', () => { state.userTapped = true; refresh(true); });
     document.querySelectorAll('#tabbar .tab').forEach((b) => b.addEventListener('click', () => switchView(b.dataset.view)));
     wireForms();
     document.addEventListener('visibilitychange', () => {
@@ -116,6 +116,8 @@
     try {
       await loadAll();
       renderAll();
+      if (showSpin && state.userTapped) toast('✓ Up to date');
+      state.userTapped = false;
       await autoResolveForfeits();
       await awardBadges();
     } catch (err) { oops(err); }
@@ -472,10 +474,14 @@
       const counts = L.workoutQualifies(w);
       html += '<div class="hist-row"><span>' + fmtDate(w.workout_date) + ' · <b>' + w.duration_min + ' min</b> ' +
         (counts ? '<span class="tag good">counts</span>' : '<span class="tag warn">&lt;45 — doesn\'t count</span>') +
-        (w.source !== 'manual' ? ' <span class="hist-note">' + esc(w.source) + '</span>' : '') + '</span>' +
-        '<button class="btn-danger-ghost" data-del="' + esc(w.id) + '" title="Delete">✕</button></div>';
+        (w.source !== 'manual' ? ' <span class="hist-note">' + esc(w.source) + '</span>' : '') +
+        (w.note ? '<div class="hist-note">' + esc(w.note) + '</div>' : '') + '</span>' +
+        '<span class="row-actions">' +
+        (w.photo_path ? '<img class="proof-thumb" data-proof="' + esc(w.photo_path) + '" alt="workout proof">' : '') +
+        '<button class="btn-danger-ghost" data-del="' + esc(w.id) + '" title="Delete">✕</button></span></div>';
     }
     $('workout-list').innerHTML = html + '</div>';
+    hydrateProofThumbs($('workout-list'));
     $('workout-list').querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', async () => {
       if (!confirm('Delete this workout?')) return;
       const { error } = await sb.from('workouts').delete().eq('id', b.dataset.del);
@@ -554,7 +560,7 @@
       const hasNext = state.months.some((x) => x.starts_on > m.ends_on);
       if (!hasNext) {
         const draft = L.nextMonthDraft(m);
-        html += '<div class="card"><h3>📆 Start ' + esc(draft.label) + '</h3><p class="hint">Your new start weight is pre-filled from your final weigh-in — already-lost kilos are never re-targeted.</p>' +
+        html += '<div class="card"><h3>📆 Start Block ' + (state.months.length + 1) + '</h3><p class="hint">Your new start weight is pre-filled from your final weigh-in — already-lost kilos are never re-targeted.</p>' +
           monthForm('next', draft.starts_on, draft) + '</div>';
       }
     }
@@ -623,7 +629,9 @@
         const startsOn = kind === 'next' ? L.nextMonthDraft(prevMonth).starts_on : $('mf-start-date').value;
         const endsOn = $('mf-end-date').value;
         if (!(endsOn > startsOn)) throw new Error('End date must be after the start date.');
-        const month = { label: L.monthLabel(startsOn), starts_on: startsOn, ends_on: endsOn };
+        // "Block N" labels: 4-week blocks can share a calendar month, so
+        // YYYY-MM labels would collide in the ledger.
+        const month = { label: 'Block ' + (state.months.length + 1), starts_on: startsOn, ends_on: endsOn };
         if (state.months.some((x) => x.starts_on === month.starts_on)) throw new Error('That month already exists.');
         const { data: mrow, error: e1 } = await sb.from('challenge_months').insert(month).select().single();
         if (e1) throw e1;
@@ -688,19 +696,45 @@
     });
 
     $('workout-duration').addEventListener('input', workoutHint);
+    $('workout-photo-btn').addEventListener('click', () => $('workout-photo').click());
+    $('workout-photo').addEventListener('change', () => {
+      const f = $('workout-photo').files[0];
+      $('workout-photo-name').hidden = !f;
+      if (f) $('workout-photo-name').textContent = '📎 ' + f.name + ' — tap Log workout to upload';
+    });
     $('workout-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!state.me) return;
+      const btn = $('workout-form').querySelector('.btn-primary');
+      btn.disabled = true;
       try {
         const row = {
           participant_id: state.me.id, workout_date: $('workout-date').value,
           duration_min: +$('workout-duration').value, source: 'manual',
         };
-        const { error } = await sb.from('workouts').insert(row);
+        const note = $('workout-note').value.trim();
+        if (note) row.note = note;
+        const file = $('workout-photo').files[0];
+        if (file) {
+          btn.textContent = 'Uploading photo…';
+          row.photo_path = await uploadProof(file);
+        }
+        let { error } = await sb.from('workouts').insert(row);
+        if (error && /note|photo_path|column|schema/i.test(error.message)) {
+          // DB not migrated yet — save the workout itself, flag the rest
+          const basic = { participant_id: row.participant_id, workout_date: row.workout_date, duration_min: row.duration_min, source: 'manual' };
+          ({ error } = await sb.from('workouts').insert(basic));
+          if (!error) toast('Saved, but notes/photos need update-workouts.sql run first', 'error');
+        }
         if (error) throw error;
         toast(row.duration_min >= L.QUALIFYING_MIN ? '💪 Counts! Nice work.' : '🙂 Logged (under 45 — doesn\'t count)');
+        $('workout-note').value = '';
+        $('workout-photo').value = '';
+        $('workout-photo-name').hidden = true;
         await refresh(false);
       } catch (err) { oops(err); }
+      btn.disabled = false;
+      btn.textContent = 'Log workout';
     });
 
     $('weigh-week-seg').addEventListener('click', () => { $('weigh-week-seg').dataset.userTouched = '1'; }, true);
@@ -710,6 +744,45 @@
     state.foodOnPlan = v;
     $('food-yes').classList.toggle('sel-yes', v === true);
     $('food-no').classList.toggle('sel-no', v === false);
+  }
+
+  // ---------- workout proof photos (Supabase Storage) ----------
+  const PROOF_BUCKET = 'workout-proofs';
+  async function compressImage(file) {
+    // iPhone screenshots are 1-3MB PNGs; shrink to <=1600px JPEG to stay tiny
+    try {
+      const bmp = await createImageBitmap(file);
+      const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+      if (scale === 1 && file.size < 500000) return file;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(bmp.width * scale);
+      canvas.height = Math.round(bmp.height * scale);
+      canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.85));
+      return blob || file;
+    } catch (_) { return file; }
+  }
+  async function uploadProof(file) {
+    const blob = await compressImage(file);
+    const path = state.session.user.id + '/' + Date.now() + '.jpg';
+    const { error } = await sb.storage.from(PROOF_BUCKET).upload(path, blob, { contentType: 'image/jpeg' });
+    if (error) throw new Error('Photo upload failed: ' + error.message + ' (has update-workouts.sql been run?)');
+    return path;
+  }
+  async function hydrateProofThumbs(root) {
+    const imgs = [...root.querySelectorAll('img[data-proof]')];
+    if (!imgs.length || !sb.storage) return;
+    try {
+      const { data, error } = await sb.storage.from(PROOF_BUCKET).createSignedUrls(imgs.map((i) => i.dataset.proof), 3600);
+      if (error || !data) return;
+      const byPath = new Map(data.map((d) => [d.path, d.signedUrl]));
+      imgs.forEach((img) => {
+        const url = byPath.get(img.dataset.proof);
+        if (!url) return;
+        img.src = url;
+        img.addEventListener('click', () => window.open(url, '_blank'));
+      });
+    } catch (_) { /* thumbs are best-effort */ }
   }
 
   // ---------- PWA / offline ----------

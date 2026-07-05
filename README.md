@@ -5,7 +5,7 @@ Static vanilla-JS frontend (no build step) + Supabase (Postgres + Auth) + GitHub
 
 ## The game
 
-Challenge periods are variable length (created in-app with start + deciding-day dates; weeks are derived). **Current: "Summer 2026", Mon 6 Jul → Wed 2 Sep 2026 (9 weeks) — the deciding day.** Requires `alter-weeks.sql` to have been run once (relaxes the original 4-week weigh-in cap).
+Challenge periods are variable length (created in-app with start + deciding-day dates; weeks are derived). **Current plan: three 4-week blocks, 6 Jul → 27 Sep 2026** — Block 1 is 6 Jul → 2 Aug; each block ends with a reassessment, target reset, and a £200 forfeit for whoever missed. Blocks 2/3 are created in-app via the roll-over flow (labels are "Block N"). `alter-weeks.sql` is only needed if a period ever exceeds 4 weeks; `update-workouts.sql` (run once) enables workout notes + photo proof via a private Storage bucket.
 
 | Pillar | Rule | Money |
 |---|---|---|
