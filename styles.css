@@ -16,8 +16,9 @@
   --good: #34d399;
   --bad: #f87171;
   --warn: #fbbf24;
-  --p1: #38bdf8;   /* participant colour A */
-  --p2: #f472b6;   /* participant colour B */
+  /* participant colours by name order (sorted): p1 = Amber (pink), p2 = Tony (blue) */
+  --p1: #f472b6;
+  --p2: #38bdf8;
   --accent: #8b5cf6;
   --radius: 18px;
   --tabbar-h: 64px;
@@ -72,6 +73,16 @@ input[type="email"], input[type="password"], input[type="number"], input[type="d
   min-height: 50px;
 }
 input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+/* iOS Safari centres the value inside date inputs; align like the other fields */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: left;
+}
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  margin: 0;
+}
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .seg button:focus-visible, .tab:focus-visible { outline-offset: -2px; border-radius: 9px; }
 .form-error { color: var(--bad); font-weight: 600; margin: 10px 0 0; }
