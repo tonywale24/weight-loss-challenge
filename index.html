@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Weight-Loss Challenge</title>
+  <meta name="description" content="Two-person head-to-head weight-loss challenge tracker">
+  <meta name="theme-color" content="#0e1016">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WL Challenge">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="toast-root" aria-live="polite"></div>
+  <div id="offline-banner" hidden>📡 You're offline — showing the app shell. Data needs a connection.</div>
+
+  <!-- ============ LOGIN ============ -->
+  <section id="view-login" hidden>
+    <div class="login-card">
+      <div class="login-logo"><span class="vs-left">W</span><span class="vs-mid">vs</span><span class="vs-right">L</span></div>
+      <h1>Weight-Loss<br>Challenge</h1>
+      <p class="login-sub">£200 on the line. Don't be the one who pays. 😈</p>
+      <form id="login-form" autocomplete="on">
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" autocomplete="username" required inputmode="email">
+        <label for="login-password">Password</label>
+        <input id="login-password" type="password" autocomplete="current-password" required>
+        <button type="submit" class="btn btn-primary btn-big" id="login-btn">Sign in</button>
+        <p id="login-error" class="form-error" role="alert" hidden></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ APP ============ -->
+  <div id="app-shell" hidden>
+    <header id="app-header">
+      <div id="month-pill" class="pill">—</div>
+      <div class="header-right">
+        <button id="refresh-btn" class="icon-btn" title="Refresh" aria-label="Refresh">↻</button>
+        <button id="signout-btn" class="pill pill-btn" title="Sign out">—</button>
+      </div>
+    </header>
+
+    <main id="main">
+      <section id="view-dashboard" class="view"></section>
+
+      <section id="view-weigh" class="view" hidden>
+        <h2>⚖️ Weigh-in</h2>
+        <p class="view-sub">One official weigh-in per week. Week 4 settles the £200.</p>
+        <form id="weigh-form" class="card form-card">
+          <label for="weigh-week">Week</label>
+          <div class="seg" id="weigh-week-seg" role="radiogroup"></div>
+          <input type="hidden" id="weigh-week" value="1">
+          <label for="weigh-weight">Weight (kg)</label>
+          <input id="weigh-weight" type="number" step="0.1" min="20" max="400" inputmode="decimal" required placeholder="e.g. 92.4">
+          <button type="submit" class="btn btn-primary btn-big">Save weigh-in</button>
+        </form>
+        <div id="weigh-history"></div>
+      </section>
+
+      <section id="view-food" class="view" hidden>
+        <h2>🍎 Food check-in</h2>
+        <p class="view-sub">Were you on plan? Calories/macros live in Lose It — this is the daily verdict.</p>
+        <form id="food-form" class="card form-card">
+          <label for="food-date">Day</label>
+          <input id="food-date" type="date" required>
+          <label>On plan?</label>
+          <div class="onplan-row">
+            <button type="button" id="food-yes" class="btn onplan-btn">✅ On plan</button>
+            <button type="button" id="food-no" class="btn onplan-btn">❌ Off plan</button>
+          </div>
+          <label for="food-calories">Calories <span class="muted">(optional)</span></label>
+          <input id="food-calories" type="number" min="0" max="20000" inputmode="numeric" placeholder="from Lose It">
+          <button type="submit" class="btn btn-primary btn-big" id="food-save">Save check-in</button>
+        </form>
+        <div id="food-history"></div>
+      </section>
+
+      <section id="view-workout" class="view" hidden>
+        <h2>💪 Workout</h2>
+        <p class="view-sub">4 per week, 45+ minutes each. Shorter ones are logged but don't count.</p>
+        <form id="workout-form" class="card form-card">
+          <label for="workout-date">Date</label>
+          <input id="workout-date" type="date" required>
+          <label for="workout-duration">Duration (minutes)</label>
+          <input id="workout-duration" type="number" min="1" max="600" inputmode="numeric" value="45" required>
+          <p id="workout-hint" class="hint"></p>
+          <button type="submit" class="btn btn-primary btn-big">Log workout</button>
+        </form>
+        <div id="workout-list"></div>
+      </section>
+
+      <section id="view-month" class="view" hidden>
+        <h2>📅 Month</h2>
+        <div id="month-content"></div>
+      </section>
+    </main>
+
+    <nav id="tabbar">
+      <button class="tab active" data-view="dashboard"><span class="tab-ico">🏆</span>Home</button>
+      <button class="tab" data-view="weigh"><span class="tab-ico">⚖️</span>Weigh</button>
+      <button class="tab" data-view="food"><span class="tab-ico">🍎</span>Food</button>
+      <button class="tab" data-view="workout"><span class="tab-ico">💪</span>Gym</button>
+      <button class="tab" data-view="month"><span class="tab-ico">📅</span>Month</button>
+    </nav>
+  </div>
+
+  <script src="./vendor/supabase.js"></script>
+  <script src="./config.js"></script>
+  <script src="./logic.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
