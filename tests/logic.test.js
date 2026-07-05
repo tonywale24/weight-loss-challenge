@@ -91,6 +91,27 @@ eq(L.monthEnded(month1, '2026-06-29'), true, 'ended');
 eq(L.pickCurrentMonth([month1, month2], '2026-07-05').id, M2, 'picks active month');
 eq(L.pickCurrentMonth([month1], '2026-07-05').id, M1, 'falls back to last ended month');
 
+// ---------- variable-length challenge (the real one: Mon 6 Jul -> Wed 2 Sep) ----------
+console.log('\n# variable-length challenge');
+const summer = { id: 'mc', label: 'Summer 2026', starts_on: '2026-07-06', ends_on: '2026-09-02' };
+eq(L.weeksIn(summer), 9, '6 Jul -> 2 Sep = 9 weeks');
+eq(L.weeksIn(month1), 4, 'classic 28-day month = 4 weeks');
+eq(L.currentWeekNo(summer, '2026-07-06'), 1, 'start Monday -> week 1');
+eq(L.currentWeekNo(summer, '2026-07-13'), 2, 'second Monday -> week 2');
+eq(L.currentWeekNo(summer, '2026-08-31'), 9, 'last Monday -> week 9');
+eq(L.currentWeekNo(summer, '2026-09-02'), 9, 'deciding day (Wed) -> still week 9');
+eq(L.currentWeekNo(summer, '2026-09-03'), 10, 'day after deciding day -> ended sentinel');
+eq(L.monthEnded(summer, '2026-09-02'), false, 'not ended ON the deciding day');
+eq(L.monthEnded(summer, '2026-09-03'), true, 'ended the day after');
+eq(L.weeksLeft(summer, '2026-07-06'), 9, '9 weeks left at start');
+eq(L.weeksLeft(summer, '2026-08-31'), 1, '1 week left in final week');
+const tS = { participant_id: P1, month_id: 'mc', start_weight: 100, target_weight: 92 };
+const wS = [wi(P1, 'mc', 1, 100), wi(P1, 'mc', 5, 96), wi(P1, 'mc', 9, 91.5)];
+eq(L.finalWeighIn(wS, P1, 'mc').week_no, 9, 'final weigh-in = highest week logged');
+eq(L.resolveForfeit(tS, wS), { target_met: true, amount_owed: 0 }, 'week-9 final below target -> £0');
+eq(L.resolveForfeit(tS, wS.slice(0, 2)), { target_met: false, amount_owed: 200 }, 'stopped logging at wk5 above target -> £200');
+eq(L.nextStartWeight(tS, wS), 91.5, 'next challenge starts from week-9 final');
+
 // ---------- head-to-head headline ----------
 console.log('\n# leaderboard');
 const me = { weightPct: 0.5, workoutsThisWeek: 4, foodThisWeek: 6 };

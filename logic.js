@@ -22,17 +22,24 @@
   function mondayOf(s) { const d = parseDate(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return toDateStr(d); }
 
   // ---------- month timing ----------
+  // Challenge periods are variable length (default 4 weeks); the week count
+  // is always derived from the period's own dates.
+  function weeksIn(month) {
+    return Math.max(1, Math.ceil((daysBetween(month.starts_on, month.ends_on) + 1) / 7));
+  }
   function currentWeekNo(month, today) {
     if (today < month.starts_on) return 0;                       // not started
-    if (today > month.ends_on) return WEEKS_PER_MONTH + 1;       // ended
-    return Math.min(WEEKS_PER_MONTH, Math.floor(daysBetween(month.starts_on, today) / 7) + 1);
+    const weeks = weeksIn(month);
+    if (today > month.ends_on) return weeks + 1;                 // ended
+    return Math.min(weeks, Math.floor(daysBetween(month.starts_on, today) / 7) + 1);
   }
   function monthEnded(month, today) { return today > month.ends_on; }
   function weeksLeft(month, today) {
+    const weeks = weeksIn(month);
     const wn = currentWeekNo(month, today);
-    if (wn === 0) return WEEKS_PER_MONTH;
-    if (wn > WEEKS_PER_MONTH) return 0;
-    return WEEKS_PER_MONTH - wn + 1; // includes the current week
+    if (wn === 0) return weeks;
+    if (wn > weeks) return 0;
+    return weeks - wn + 1; // includes the current week
   }
   function pickCurrentMonth(months, today) {
     if (!months.length) return null;
@@ -120,9 +127,10 @@
       .sort((a, b) => a.week_no - b.week_no);
   }
   function finalWeighIn(weighIns, pid, monthId) {
-    // Week-4 weigh-in is the official close; fall back to the latest logged.
+    // The highest-week weigh-in is the official close (ideally the final
+    // week; a skipped final week falls back to the last one logged).
     const ws = monthWeighIns(weighIns, pid, monthId);
-    return ws.find((w) => w.week_no === WEEKS_PER_MONTH) || ws[ws.length - 1] || null;
+    return ws[ws.length - 1] || null;
   }
   function pctClosed(start, goal, current) {
     if (!(start > goal)) return current <= goal ? 1 : 0; // degenerate/unset target
@@ -193,7 +201,7 @@
     const out = [];
     if (month && !monthEnded(month, today)) {
       const wn = currentWeekNo(month, today);
-      if (wn >= 1 && wn <= WEEKS_PER_MONTH &&
+      if (wn >= 1 && wn <= weeksIn(month) &&
           !weighIns.some((w) => w.participant_id === pid && w.month_id === month.id && w.week_no === wn)) {
         out.push('⚖️ ' + name + " hasn't weighed in for week " + wn + ' yet');
       }
@@ -258,7 +266,7 @@
   return {
     QUALIFYING_MIN, WEEKLY_WORKOUT_GOAL, FORFEIT_AMOUNT, WEEKS_PER_MONTH, BADGE_DEFS,
     toDateStr, parseDate, addDays, daysBetween, mondayOf,
-    currentWeekNo, monthEnded, weeksLeft, pickCurrentMonth,
+    weeksIn, currentWeekNo, monthEnded, weeksLeft, pickCurrentMonth,
     workoutQualifies, qualifyingCountInWeek, workoutWeekStreak, hasWorkoutWeek,
     foodMap, foodStreak, maxFoodStreak, onPlanCountInWeek, hasPerfectFoodWeek,
     monthWeighIns, finalWeighIn, pctClosed, weightStats, pctAtWeek,

@@ -181,8 +181,8 @@
     const m = state.month, t = today();
     let label = 'No month yet';
     if (m) {
-      const wn = L.currentWeekNo(m, t);
-      label = m.label + (wn === 0 ? ' · starts ' + fmtDate(m.starts_on) : wn > 4 ? ' · finished' : ' · week ' + wn + '/4');
+      const wn = L.currentWeekNo(m, t), wk = L.weeksIn(m);
+      label = m.label + (wn === 0 ? ' · starts ' + fmtDate(m.starts_on) : wn > wk ? ' · finished' : ' · week ' + wn + '/' + wk);
     }
     $('month-pill').textContent = label;
     $('signout-btn').textContent = (state.me ? state.me.name : 'Spectator') + ' ⏻';
@@ -280,7 +280,8 @@
 
     // workouts (this ISO week)
     const q = L.qualifyingCountInWeek(state.workouts, p.id, t);
-    html += '<div class="stat"><div class="stat-label">Workouts this week</div><div class="stat-value ' + (q >= 4 ? 'good' : '') + '">' + q + '<small>/' + L.WEEKLY_WORKOUT_GOAL + (q >= 4 ? ' ✓' : '') + '</small></div><div class="dots">' +
+    const hitGoal = q >= L.WEEKLY_WORKOUT_GOAL;
+    html += '<div class="stat"><div class="stat-label">Workouts this week</div><div class="stat-value ' + (hitGoal ? 'good' : '') + '">' + q + '<small>/' + L.WEEKLY_WORKOUT_GOAL + (hitGoal ? ' ✓' : '') + '</small></div><div class="dots">' +
       [0, 1, 2, 3].map((i) => '<span class="d' + (i < q ? ' on' : '') + '"></span>').join('') + '</div></div>';
 
     // food (this ISO week, Mon..Sun)
@@ -341,7 +342,7 @@
       const m = state.month;
       if (m && !L.monthEnded(m, today())) {
         const wn = L.currentWeekNo(m, today());
-        if (wn >= 1 && wn <= 4 && !state.weighIns.some((w) => w.participant_id === state.me.id && w.month_id === m.id && w.week_no === wn)) {
+        if (wn >= 1 && wn <= L.weeksIn(m) && !state.weighIns.some((w) => w.participant_id === state.me.id && w.month_id === m.id && w.week_no === wn)) {
           out.push({ text: '⚖️ Your week-' + wn + ' weigh-in is due', self: true });
         }
       }
@@ -399,14 +400,16 @@
   function renderWeigh() {
     const seg = $('weigh-week-seg');
     const m = state.month;
-    const wn = m ? Math.min(4, Math.max(1, L.currentWeekNo(m, today()))) : 1;
-    if (!seg.dataset.built) {
-      seg.innerHTML = [1, 2, 3, 4].map((w) => '<button type="button" data-w="' + w + '">Wk ' + w + '</button>').join('');
+    const weeks = m ? L.weeksIn(m) : 4;
+    const wn = m ? Math.min(weeks, Math.max(1, L.currentWeekNo(m, today()))) : 1;
+    if (seg.dataset.built !== String(weeks)) {
+      const range = []; for (let w = 1; w <= weeks; w++) range.push(w);
+      seg.innerHTML = range.map((w) => '<button type="button" data-w="' + w + '">Wk ' + w + '</button>').join('');
       seg.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
         $('weigh-week').value = b.dataset.w;
         seg.querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b));
       }));
-      seg.dataset.built = '1';
+      seg.dataset.built = String(weeks);
     }
     if (!seg.dataset.userTouched) {
       $('weigh-week').value = wn;
@@ -419,7 +422,7 @@
     let html = '';
     if (m) {
       html += '<div class="section-title">' + esc(m.label) + ' weigh-ins</div><div class="card">';
-      for (let w = 1; w <= 4; w++) {
+      for (let w = 1; w <= weeks; w++) {
         const cells = state.participants.map((p) => {
           const row = state.weighIns.find((x) => x.month_id === m.id && x.participant_id === p.id && x.week_no === w);
           return esc(p.name) + ': ' + (row ? '<b>' + fmtKg(row.weight) + '</b>' : '<span class="muted">—</span>');
@@ -504,9 +507,11 @@
     }
 
     const wn = L.currentWeekNo(m, t);
+    const wk = L.weeksIn(m);
     const ended = L.monthEnded(m, t);
     html += '<div class="card"><h3>' + esc(m.label) + '</h3><p class="hint">' + fmtDate(m.starts_on) + ' → ' + fmtDate(m.ends_on) + ' · ' +
-      (ended ? 'finished' : wn === 0 ? 'starts soon' : 'week ' + wn + ' of 4 · ' + L.weeksLeft(m, t) + ' week' + (L.weeksLeft(m, t) === 1 ? '' : 's') + ' left') + '</p>';
+      (ended ? 'finished' : wn === 0 ? 'starts ' + fmtDate(m.starts_on) : 'week ' + wn + ' of ' + wk + ' · ' + L.weeksLeft(m, t) + ' week' + (L.weeksLeft(m, t) === 1 ? '' : 's') + ' left') + '</p>' +
+      (ended ? '' : '<p class="hint">🏁 Deciding day: <b>' + fmtDate(m.ends_on) + '</b> — final weigh-in vs target settles the £' + L.FORFEIT_AMOUNT + '.</p>');
 
     // targets per person
     for (const p of state.participants) {
@@ -600,8 +605,10 @@
 
   function monthForm(kind, defaultStart, draft) {
     const start = state.me ? (kind === 'next' && draft ? L.nextStartWeight(targetOf(state.me.id, state.month.id), state.weighIns) : null) : null;
+    const defaultEnd = draft ? draft.ends_on : L.addDays(defaultStart, L.WEEKS_PER_MONTH * 7 - 1);
     return '<form id="month-form-' + kind + '" class="form-card">' +
-      '<label>Month starts</label><input id="mf-start-date" type="date" value="' + esc(defaultStart) + '" ' + (kind === 'next' ? 'disabled' : '') + ' required>' +
+      '<label>Starts</label><input id="mf-start-date" type="date" value="' + esc(defaultStart) + '" ' + (kind === 'next' ? 'disabled' : '') + ' required>' +
+      '<label>Ends (deciding day)</label><input id="mf-end-date" type="date" value="' + esc(defaultEnd) + '" required>' +
       '<label>My start weight (kg)</label><input id="mf-start" type="number" step="0.1" min="20" max="400" inputmode="decimal" value="' + esc(start != null ? start : '') + '" required>' +
       '<label>My target weight (kg)</label><input id="mf-target" type="number" step="0.1" min="20" max="400" inputmode="decimal" required>' +
       '<p class="hint">Your partner sets their own target when they next open the app.</p>' +
@@ -614,7 +621,9 @@
       if (!state.me) return;
       try {
         const startsOn = kind === 'next' ? L.nextMonthDraft(prevMonth).starts_on : $('mf-start-date').value;
-        const month = kind === 'next' ? L.nextMonthDraft(prevMonth) : { label: L.monthLabel(startsOn), starts_on: startsOn, ends_on: L.addDays(startsOn, L.WEEKS_PER_MONTH * 7 - 1) };
+        const endsOn = $('mf-end-date').value;
+        if (!(endsOn > startsOn)) throw new Error('End date must be after the start date.');
+        const month = { label: L.monthLabel(startsOn), starts_on: startsOn, ends_on: endsOn };
         if (state.months.some((x) => x.starts_on === month.starts_on)) throw new Error('That month already exists.');
         const { data: mrow, error: e1 } = await sb.from('challenge_months').insert(month).select().single();
         if (e1) throw e1;

@@ -5,15 +5,17 @@ Static vanilla-JS frontend (no build step) + Supabase (Postgres + Auth) + GitHub
 
 ## The game
 
+Challenge periods are variable length (created in-app with start + deciding-day dates; weeks are derived). **Current: "Summer 2026", Mon 6 Jul → Wed 2 Sep 2026 (9 weeks) — the deciding day.** Requires `alter-weeks.sql` to have been run once (relaxes the original 4-week weigh-in cap).
+
 | Pillar | Rule | Money |
 |---|---|---|
-| **Weight** | Weekly weigh-in (weeks 1–4) vs a monthly target | ❌ Miss the month target → **£200 forfeit** |
+| **Weight** | Weekly weigh-in vs the period target | ❌ Miss the target on the deciding day → **£200 forfeit** |
 | **Food** | Daily "on plan?" check-in (+ optional calories) | Bragging rights only |
 | **Workouts** | ≥4 workouts of ≥45 min per ISO week (shorter ones log but don't count) | Bragging rights only |
 
 - **Forfeit is weight-only.** Food/workout stats can never add money — `resolveForfeit()` in `logic.js` doesn't even receive that data.
-- **Target reset:** next month's start weight = this month's **week-4 weigh-in** (fallback: latest weigh-in that month), so already-lost kilos are never re-targeted.
-- **No week-4 weigh-in by month end = no proof = forfeit.** Weigh in.
+- **Target reset:** the next period's start weight = this period's **final weigh-in** (highest week logged), so already-lost kilos are never re-targeted.
+- **No weigh-ins at all by the deciding day = no proof = forfeit.** Weigh in.
 - Streaks, badges (`first_5kg`, `target_hit`, `perfect_food_week`, `workout_week`, `streak_7`, `streak_30`, `comeback`), "who's winning" headline, and missed-check-in nudges are all derived client-side from raw logs — nothing is double-stored.
 
 ## One-time setup (5 minutes, already mostly done)
