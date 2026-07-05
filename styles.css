@@ -63,6 +63,8 @@ input[type="email"], input[type="password"], input[type="number"], input[type="d
   min-height: 50px;
 }
 input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg button:focus-visible, .tab:focus-visible { outline-offset: -2px; border-radius: 9px; }
 .form-error { color: var(--bad); font-weight: 600; margin: 10px 0 0; }
 
 /* ---------- buttons ---------- */
