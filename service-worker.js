@@ -1,6 +1,6 @@
 /* App-shell cache: static assets cache-first, navigations network-first
    (so deploys show up), Supabase API always network (never cache data). */
-const CACHE = 'wlc-v4';
+const CACHE = 'wlc-v5';
 const SHELL = [
   './',
   './index.html',
