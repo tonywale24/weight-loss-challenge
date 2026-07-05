@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -16,14 +16,14 @@
 </head>
 <body>
   <div id="toast-root" aria-live="polite"></div>
-  <div id="offline-banner" hidden>ðŸ“¡ You're offline â€” showing the app shell. Data needs a connection.</div>
+  <div id="offline-banner" hidden>📡 You're offline — showing the app shell. Data needs a connection.</div>
 
   <!-- ============ LOGIN ============ -->
   <section id="view-login" hidden>
     <div class="login-card">
       <div class="login-logo"><span class="vs-left">W</span><span class="vs-mid">vs</span><span class="vs-right">L</span></div>
       <h1>Weight-Loss<br>Challenge</h1>
-      <p class="login-sub">Â£200 on the line. Don't be the one who pays. ðŸ˜ˆ</p>
+      <p class="login-sub">£200 on the line. Don't be the one who pays. 😈</p>
       <form id="login-form" autocomplete="on">
         <label for="login-email">Email</label>
         <input id="login-email" type="email" autocomplete="username" required inputmode="email">
@@ -38,10 +38,10 @@
   <!-- ============ APP ============ -->
   <div id="app-shell" hidden>
     <header id="app-header">
-      <div id="month-pill" class="pill">â€”</div>
+      <div id="month-pill" class="pill">—</div>
       <div class="header-right">
-        <button id="refresh-btn" class="icon-btn" title="Refresh" aria-label="Refresh">â†»</button>
-        <button id="signout-btn" class="pill pill-btn" title="Sign out">â€”</button>
+        <button id="refresh-btn" class="icon-btn" title="Refresh" aria-label="Refresh">↻</button>
+        <button id="signout-btn" class="pill pill-btn" title="Sign out">—</button>
       </div>
     </header>
 
@@ -49,8 +49,8 @@
       <section id="view-dashboard" class="view"></section>
 
       <section id="view-weigh" class="view" hidden>
-        <h2>âš–ï¸ Weigh-in</h2>
-        <p class="view-sub">One official weigh-in per week. Week 4 settles the Â£200.</p>
+        <h2>⚖️ Weigh-in</h2>
+        <p class="view-sub">One official weigh-in per week. Week 4 settles the £200.</p>
         <form id="weigh-form" class="card form-card">
           <label for="weigh-week">Week</label>
           <div class="seg" id="weigh-week-seg" role="radiogroup"></div>
@@ -63,15 +63,15 @@
       </section>
 
       <section id="view-food" class="view" hidden>
-        <h2>ðŸŽ Food check-in</h2>
-        <p class="view-sub">Were you on plan? Calories/macros live in Lose It â€” this is the daily verdict.</p>
+        <h2>🍎 Food check-in</h2>
+        <p class="view-sub">Were you on plan? Calories/macros live in Lose It — this is the daily verdict.</p>
         <form id="food-form" class="card form-card">
           <label for="food-date">Day</label>
           <input id="food-date" type="date" required>
           <label>On plan?</label>
           <div class="onplan-row">
-            <button type="button" id="food-yes" class="btn onplan-btn">âœ… On plan</button>
-            <button type="button" id="food-no" class="btn onplan-btn">âŒ Off plan</button>
+            <button type="button" id="food-yes" class="btn onplan-btn">✅ On plan</button>
+            <button type="button" id="food-no" class="btn onplan-btn">❌ Off plan</button>
           </div>
           <label for="food-calories">Calories <span class="muted">(optional)</span></label>
           <input id="food-calories" type="number" min="0" max="20000" inputmode="numeric" placeholder="from Lose It">
@@ -81,7 +81,7 @@
       </section>
 
       <section id="view-workout" class="view" hidden>
-        <h2>ðŸ’ª Workout</h2>
+        <h2>💪 Workout</h2>
         <p class="view-sub">4 per week, 45+ minutes each. Shorter ones are logged but don't count.</p>
         <form id="workout-form" class="card form-card">
           <label for="workout-date">Date</label>
@@ -95,17 +95,17 @@
       </section>
 
       <section id="view-month" class="view" hidden>
-        <h2>ðŸ“… Month</h2>
+        <h2>📅 Month</h2>
         <div id="month-content"></div>
       </section>
     </main>
 
     <nav id="tabbar">
-      <button class="tab active" data-view="dashboard"><span class="tab-ico">ðŸ†</span>Home</button>
-      <button class="tab" data-view="weigh"><span class="tab-ico">âš–ï¸</span>Weigh</button>
-      <button class="tab" data-view="food"><span class="tab-ico">ðŸŽ</span>Food</button>
-      <button class="tab" data-view="workout"><span class="tab-ico">ðŸ’ª</span>Gym</button>
-      <button class="tab" data-view="month"><span class="tab-ico">ðŸ“…</span>Month</button>
+      <button class="tab active" data-view="dashboard"><span class="tab-ico">🏆</span>Home</button>
+      <button class="tab" data-view="weigh"><span class="tab-ico">⚖️</span>Weigh</button>
+      <button class="tab" data-view="food"><span class="tab-ico">🍎</span>Food</button>
+      <button class="tab" data-view="workout"><span class="tab-ico">💪</span>Gym</button>
+      <button class="tab" data-view="month"><span class="tab-ico">📅</span>Month</button>
     </nav>
   </div>
 
