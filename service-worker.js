@@ -1,6 +1,6 @@
 /* App-shell cache: static assets cache-first, navigations network-first
    (so deploys show up), Supabase API always network (never cache data). */
-const CACHE = 'wlc-v2';
+const CACHE = 'wlc-v3';
 const SHELL = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const SHELL = [
   './app.js',
   './config.js',
   './vendor/supabase.js',
+  './vendor/space-grotesk.woff2',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
