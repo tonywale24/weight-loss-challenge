@@ -408,6 +408,29 @@
   }
 
   // ----- weigh view -----
+  function weekWindow(m, w) {
+    // Week w's date span. The final week always ends on the block's last
+    // day (the deciding day), even if that week is a little short.
+    const weeks = L.weeksIn(m);
+    const start = L.addDays(m.starts_on, (w - 1) * 7);
+    const end = w >= weeks ? m.ends_on : L.addDays(start, 6);
+    return { start, end, isFinal: w >= weeks };
+  }
+  function updateWeighHint() {
+    const hint = $('weigh-week-hint');
+    if (!hint) return;
+    const m = state.month;
+    if (!m) { hint.textContent = ''; return; }
+    const w = +($('weigh-week').value || 1);
+    const win = weekWindow(m, w);
+    if (win.isFinal) {
+      hint.innerHTML = '🏁 Week ' + w + ' runs ' + fmtDate(win.start) + '–' + fmtDate(win.end) +
+        '. This is the decider: weigh on <b>' + fmtDate(win.end) + '</b> (the last day) so all your weeks count towards the £' + L.FORFEIT_AMOUNT + '.';
+    } else {
+      hint.innerHTML = 'Week ' + w + ' runs ' + fmtDate(win.start) + '–' + fmtDate(win.end) +
+        '. Weigh at the <b>end</b> of the week (around ' + fmtDate(win.end) + '), same time each week.';
+    }
+  }
   function renderWeigh() {
     const seg = $('weigh-week-seg');
     const m = state.month;
@@ -419,6 +442,7 @@
       seg.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
         $('weigh-week').value = b.dataset.w;
         seg.querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b));
+        updateWeighHint();
       }));
       seg.dataset.built = String(weeks);
     }
@@ -438,13 +462,15 @@
           const row = state.weighIns.find((x) => x.month_id === m.id && x.participant_id === p.id && x.week_no === w);
           return esc(p.name) + ': ' + (row ? '<b>' + fmtKg(row.weight) + '</b>' : '<span class="muted">—</span>');
         }).join(' &nbsp;·&nbsp; ');
-        html += '<div class="hist-row"><span>Week ' + w + '</span><span>' + cells + '</span></div>';
+        const win = weekWindow(m, w);
+        html += '<div class="hist-row"><span>Week ' + w + (win.isFinal ? ' 🏁' : '') + ' <span class="hist-note">by ' + fmtDate(win.end) + '</span></span><span>' + cells + '</span></div>';
       }
       html += '</div>';
     } else {
       html = '<div class="empty"><span class="big-emoji">📅</span>No month set up yet — create one in the Month tab.</div>';
     }
     $('weigh-history').innerHTML = html;
+    updateWeighHint();
   }
 
   // ----- food view -----

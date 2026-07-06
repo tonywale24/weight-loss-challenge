@@ -51,11 +51,12 @@
 
       <section id="view-weigh" class="view" hidden>
         <h2>⚖️ Weigh-in</h2>
-        <p class="view-sub">One official weigh-in per week — the final one settles the £200.</p>
+        <p class="view-sub">Weigh at the end of each week, same time each time. The final week's weigh-in is the one checked against your target for the £200 — log it on the block's last day so all your weeks count.</p>
         <form id="weigh-form" class="card form-card">
           <label for="weigh-week">Week</label>
           <div class="seg" id="weigh-week-seg" role="radiogroup"></div>
           <input type="hidden" id="weigh-week" value="1">
+          <p id="weigh-week-hint" class="hint"></p>
           <label for="weigh-weight">Weight (kg)</label>
           <input id="weigh-weight" type="number" step="0.1" min="20" max="400" inputmode="decimal" required placeholder="e.g. 92.4">
           <button type="submit" class="btn btn-primary btn-big">Save weigh-in</button>
